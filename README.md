@@ -1,0 +1,2 @@
+# python-qpid
+python-qpid
