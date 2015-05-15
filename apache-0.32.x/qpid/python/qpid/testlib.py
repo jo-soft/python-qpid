@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -26,7 +26,7 @@ import random
 
 import unittest, traceback, socket
 import qpid.client, qmf.console
-import Queue
+import queue
 from qpid.content import Content
 from qpid.message import Message
 from qpid.harness import Skipped
@@ -34,6 +34,7 @@ from qpid.exceptions import VersionError
 
 import qpid.messaging
 from qpidtoollibs import BrokerAgent
+
 
 class TestBase(unittest.TestCase):
     """Base class for Qpid test cases.
@@ -68,8 +69,8 @@ class TestBase(unittest.TestCase):
             for ch, ex in self.exchanges:
                 ch.exchange_delete(exchange=ex)
         except:
-            print "Error on tearDown:"
-            print traceback.print_exc()
+            print("Error on tearDown:")
+            print(traceback.print_exc())
 
         if not self.client.closed:
             self.client.channel(0).connection_close(reply_code=200)
@@ -84,13 +85,13 @@ class TestBase(unittest.TestCase):
         password = password or self.config.broker.password or "guest"
         client = qpid.client.Client(host, port)
         try:
-          client.start(username = user, password=password, tune_params=tune_params, client_properties=client_properties)
-        except qpid.client.Closed, e:
+            client.start(username=user, password=password, tune_params=tune_params, client_properties=client_properties)
+        except qpid.client.Closed as e:
             if isinstance(e.args[0], VersionError):
                 raise Skipped(e.args[0])
             else:
                 raise e
-        except socket.error, e:
+        except socket.error as e:
             raise Skipped(e)
         return client
 
@@ -105,8 +106,9 @@ class TestBase(unittest.TestCase):
                          auto_delete=False,
                          arguments={}):
         channel = channel or self.channel
-        reply = channel.exchange_declare(ticket=ticket, exchange=exchange, type=type, passive=passive,durable=durable, auto_delete=auto_delete, arguments=arguments)
-        self.exchanges.append((channel,exchange))
+        reply = channel.exchange_declare(ticket=ticket, exchange=exchange, type=type, passive=passive, durable=durable,
+                                         auto_delete=auto_delete, arguments=arguments)
+        self.exchanges.append((channel, exchange))
         return reply
 
     def uniqueString(self):
@@ -115,8 +117,8 @@ class TestBase(unittest.TestCase):
         return "Test Message " + str(self.uniqueCounter)
 
     def randomLongString(self, length=65535):
-      body = ''.join(random.choice(string.ascii_uppercase) for _ in range(length))
-      return body
+        body = ''.join(random.choice(string.ascii_uppercase) for _ in range(length))
+        return body
 
     def consume(self, queueName, no_ack=True):
         """Consume from named queue returns the Queue object."""
@@ -128,15 +130,16 @@ class TestBase(unittest.TestCase):
         channel = channel or self.channel
         consumer_tag = keys["destination"]
         channel.message_subscribe(**keys)
-        channel.message_flow(destination=consumer_tag, unit=0, value=0xFFFFFFFFL)
-        channel.message_flow(destination=consumer_tag, unit=1, value=0xFFFFFFFFL)
+        channel.message_flow(destination=consumer_tag, unit=0, value=0xFFFFFFFF)
+        channel.message_flow(destination=consumer_tag, unit=1, value=0xFFFFFFFF)
 
     def assertEmpty(self, queue):
         """Assert that the queue is empty"""
         try:
             queue.get(timeout=1)
             self.fail("Queue is not empty.")
-        except Queue.Empty: None              # Ignore
+        except queue.Empty:
+            None  # Ignore
 
     def assertPublishGet(self, queue, exchange="", routing_key="", properties=None):
         """
@@ -181,6 +184,7 @@ class TestBase(unittest.TestCase):
 from qpid.connection import Connection
 from qpid.util import connect, ssl, URL
 
+
 class TestBase010(unittest.TestCase):
     """
     Base class for Qpid test cases. using the final 0-10 spec
@@ -218,7 +222,7 @@ class TestBase010(unittest.TestCase):
             default_port = 5672
         try:
             sock = connect(host or url.host, port or url.port or default_port)
-        except socket.error, e:
+        except socket.error as e:
             raise Skipped(e)
         if url.scheme == URL.AMQPS:
             sock = ssl(sock)
@@ -226,7 +230,7 @@ class TestBase010(unittest.TestCase):
                           password=url.password or "guest")
         try:
             conn.start(timeout=10)
-        except VersionError, e:
+        except VersionError as e:
             raise Skipped(e)
         return conn
 
@@ -240,5 +244,5 @@ class TestBase010(unittest.TestCase):
         session = session or self.session
         consumer_tag = keys["destination"]
         session.message_subscribe(**keys)
-        session.message_flow(destination=consumer_tag, unit=0, value=0xFFFFFFFFL)
-        session.message_flow(destination=consumer_tag, unit=1, value=0xFFFFFFFFL)
+        session.message_flow(destination=consumer_tag, unit=0, value=0xFFFFFFFF)
+        session.message_flow(destination=consumer_tag, unit=1, value=0xFFFFFFFF)

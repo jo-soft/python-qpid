@@ -9,7 +9,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 # 
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -23,49 +23,52 @@ from unittest import TestCase
 from qpid.queue import Queue, Empty, Closed
 
 
-class QueueTest (TestCase):
+class QueueTest(TestCase):
+    # The qpid queue class just provides sime simple extensions to
+    # python's standard queue data structure, so we don't need to test
+    # all the queue functionality.
 
-  # The qpid queue class just provides sime simple extensions to
-  # python's standard queue data structure, so we don't need to test
-  # all the queue functionality.
+    def test_listen(self):
+        values = []
+        heard = threading.Event()
 
-  def test_listen(self):
-    values = []
-    heard = threading.Event()
-    def listener(x):
-      values.append(x)
-      heard.set()
+        def listener(x):
+            values.append(x)
+            heard.set()
 
-    q = Queue(0)
-    q.listen(listener)
-    heard.clear()
-    q.put(1)
-    heard.wait()
-    assert values[-1] == 1
-    heard.clear()
-    q.put(2)
-    heard.wait()
-    assert values[-1] == 2
+        q = Queue(0)
+        q.listen(listener)
+        heard.clear()
+        q.put(1)
+        heard.wait()
+        assert values[-1] == 1
+        heard.clear()
+        q.put(2)
+        heard.wait()
+        assert values[-1] == 2
 
-    q.listen(None)
-    q.put(3)
-    assert q.get(3) == 3
-    q.listen(listener)
+        q.listen(None)
+        q.put(3)
+        assert q.get(3) == 3
+        q.listen(listener)
 
-    heard.clear()
-    q.put(4)
-    heard.wait()
-    assert values[-1] == 4
+        heard.clear()
+        q.put(4)
+        heard.wait()
+        assert values[-1] == 4
 
-  def test_close(self):
-    q = Queue(0)
-    q.put(1); q.put(2); q.put(3); q.close()
-    assert q.get() == 1
-    assert q.get() == 2
-    assert q.get() == 3
-    for i in range(10):
-      try:
-        q.get()
-        raise AssertionError("expected Closed")
-      except Closed:
-        pass
+    def test_close(self):
+        q = Queue(0)
+        q.put(1);
+        q.put(2);
+        q.put(3);
+        q.close()
+        assert q.get() == 1
+        assert q.get() == 2
+        assert q.get() == 3
+        for i in range(10):
+            try:
+                q.get()
+                raise AssertionError("expected Closed")
+            except Closed:
+                pass

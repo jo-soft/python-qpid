@@ -9,7 +9,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 # 
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -24,20 +24,25 @@ Support for amqp 'reference' content (as opposed to inline content)
 """
 
 import threading
-from queue import Queue, Closed
+from .queue import Queue, Closed
+
 
 class NotOpened(Exception): pass
 
+
 class AlreadyOpened(Exception): pass
+
 
 """
 A representation of a reference id; can be passed wherever amqp
 content is required in place of inline data
 """
-class ReferenceId:
 
+
+class ReferenceId:
     def __init__(self, id):
         self.id = id
+
 
 """
 Holds content received through 'reference api'. Instances of this
@@ -47,8 +52,8 @@ chunks (as append calls are received) or in full (after reference has
 been closed signalling data s complete).
 """
 
-class Reference:
 
+class Reference:
     def __init__(self, id):
         self.id = id
         self.chunks = Queue(0)
@@ -56,7 +61,7 @@ class Reference:
     def close(self):
         self.chunks.close()
 
-    def append(self, bytes):    
+    def append(self, bytes):
         self.chunks.put(bytes)
 
     def get_chunk(self):
@@ -68,21 +73,23 @@ class Reference:
             data += chunk
         return data
 
-    def next(self):
+    def __next__(self):
         try:
             return self.get_chunk()
-        except Closed, e:
+        except Closed as e:
             raise StopIteration
 
     def __iter__(self):
         return self
 
+
 """
 Manages a set of opened references. New references can be opened and
 existing references can be retrieved or closed.
 """
-class References:
 
+
+class References:
     def __init__(self):
         self.map = {}
         self.lock = threading.Lock()

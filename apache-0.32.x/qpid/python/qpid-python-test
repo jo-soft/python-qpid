@@ -34,7 +34,7 @@ levels = {
   "ERROR": ERROR
   }
 
-sorted_levels = [(v, k) for k, v in levels.items()]
+sorted_levels = [(v, k) for k, v in list(levels.items())]
 sorted_levels.sort()
 sorted_levels = [v for k, v in sorted_levels]
 
@@ -401,9 +401,9 @@ def run_test(name, test, config):
     if interceptor.last != "\n":
       sys.stdout.write("\n")
     sys.stdout.write(output)
-  print " %s" % colorize_word(runner.status())
+  print(" %s" % colorize_word(runner.status()))
   if runner.failed() or runner.skipped():
-    print runner.get_formatted_exceptions()
+    print(runner.get_formatted_exceptions())
   root.setLevel(level)
   filter.patterns = patterns
   return TestResult(end - start, runner.passed(), runner.skipped(), runner.failed(), runner.get_formatted_exceptions())
@@ -501,7 +501,7 @@ class FunctionScanner(PatternMatcher):
 class ClassScanner(PatternMatcher):
 
   def inspect(self, obj):
-    return type(obj) in (types.ClassType, types.TypeType) and self.matches(obj.__name__)
+    return type(obj) in (type, type) and self.matches(obj.__name__)
 
   def descend(self, cls):
     # the None is required for older versions of python
@@ -579,7 +579,7 @@ skipped = 0
 start = time.time()
 for t in filtered:
   if list_only:
-    print t.name()
+    print(t.name())
   else:
     st = t.run()
     if xmlr:
@@ -613,22 +613,22 @@ if not list_only:
     skip = "skip"
   else:
     skip = "pass"
-  print colorize("Totals:", 1),
+  print(colorize("Totals:"), 1)
   totals = [colorize_word("total", "%s tests" % total),
             colorize_word(_pass, "%s passed" % passed),
             colorize_word(skip, "%s skipped" % skipped),
             colorize_word(ign, "%s ignored" % len(ignored)),
             colorize_word(outcome, "%s failed" % failed)]
-  print ", ".join(totals),
+  print(", ".join(totals))
   if opts.hoe and failed > 0:
-    print " -- (halted after %s)" % run
+    print(" -- (halted after %s)" % run)
   else:
-    print
+    print()
   if opts.time and run > 0:
-    print colorize("Timing:", 1),
+    print(colorize("Timing:"), 1)
     timing = [colorize_word("elapsed", "%.2fs elapsed" % (end - start)),
               colorize_word("average", "%.2fs average" % ((end - start)/run))]
-    print ", ".join(timing)
+    print(", ".join(timing))
 
 if xmlr:
    xmlr.end()

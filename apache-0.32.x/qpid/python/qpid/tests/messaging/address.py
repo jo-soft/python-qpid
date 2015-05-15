@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 # 
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -25,297 +25,305 @@ from qpid.lexer import Token
 from qpid.harness import Skipped
 from qpid.tests.parser import ParserBase
 
+
 def indent(st):
-  return "  " + st.replace("\n", "\n  ")
+    return "  " + st.replace("\n", "\n  ")
+
 
 def pprint_address(name, subject, options):
-  return "NAME: %s\nSUBJECT: %s\nOPTIONS: %s" % \
-      (pprint(name), pprint(subject), pprint(options))
+    return "NAME: %s\nSUBJECT: %s\nOPTIONS: %s" % \
+           (pprint(name), pprint(subject), pprint(options))
+
 
 def pprint(o):
-  if isinstance(o, dict):
-    return pprint_map(o)
-  elif isinstance(o, list):
-    return pprint_list(o)
-  elif isinstance(o, basestring):
-    return pprint_string(o)
-  else:
-    return repr(o)
+    if isinstance(o, dict):
+        return pprint_map(o)
+    elif isinstance(o, list):
+        return pprint_list(o)
+    elif isinstance(o, str):
+        return pprint_string(o)
+    else:
+        return repr(o)
+
 
 def pprint_map(m):
-  items = ["%s: %s" % (pprint(k), pprint(v)) for k, v in m.items()]
-  items.sort()
-  return pprint_items("{", items, "}")
+    items = ["%s: %s" % (pprint(k), pprint(v)) for k, v in list(m.items())]
+    items.sort()
+    return pprint_items("{", items, "}")
+
 
 def pprint_list(l):
-  return pprint_items("[", [pprint(x) for x in l], "]")
+    return pprint_items("[", [pprint(x) for x in l], "]")
+
 
 def pprint_items(start, items, end):
-  if items:
-    return "%s\n%s\n%s" % (start, ",\n".join([indent(i) for i in items]), end)
-  else:
-    return "%s%s" % (start, end)
+    if items:
+        return "%s\n%s\n%s" % (start, ",\n".join([indent(i) for i in items]), end)
+    else:
+        return "%s%s" % (start, end)
+
 
 def pprint_string(s):
-  result = "'"
-  for c in s:
-    if c == "'":
-      result += "\\'"
-    elif c == "\n":
-      result += "\\n"
-    elif ord(c) >= 0x80:
-      result += "\\u%04x" % ord(c)
-    else:
-      result += c
-  result += "'"
-  return result
-
-class AddressTests(ParserBase, Test):
-
-  EXCLUDE = (WSPACE, EOF)
-
-  def fields(self, line, n):
-    result = line.split(":", n - 1)
-    result.extend([None]*(n - len(result)))
+    result = "'"
+    for c in s:
+        if c == "'":
+            result += "\\'"
+        elif c == "\n":
+            result += "\\n"
+        elif ord(c) >= 0x80:
+            result += "\\u%04x" % ord(c)
+        else:
+            result += c
+    result += "'"
     return result
 
-  def call(self, parser, mode, input):
-    try:
-      from subprocess import Popen, PIPE, STDOUT
-      po = Popen([parser, mode], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    except ImportError, e:
-      raise Skipped("%s" % e)
-    except OSError, e:
-      raise Skipped("%s: %s" % (e, parser))
-    out, _ = po.communicate(input=input)
-    return out
 
-  def parser(self):
-    return self.config.defines.get("address.parser")
+class AddressTests(ParserBase, Test):
+    EXCLUDE = (WSPACE, EOF)
 
-  def do_lex(self, st):
-    parser = self.parser()
-    if parser:
-      out = self.call(parser, "lex", st)
-      lines = out.split("\n")
-      toks = []
-      for line in lines:
-        if line.strip():
-          name, position, value = self.fields(line, 3)
-          toks.append(Token(LEXER.type(name), value, position, st))
-      return toks
-    else:
-      return lex(st)
+    def fields(self, line, n):
+        result = line.split(":", n - 1)
+        result.extend([None] * (n - len(result)))
+        return result
 
-  def do_parse(self, st):
-    return parse(st)
+    def call(self, parser, mode, input):
+        try:
+            from subprocess import Popen, PIPE, STDOUT
 
-  def valid(self, addr, name=None, subject=None, options=None):
-    parser = self.parser()
-    if parser:
-      got = self.call(parser, "parse", addr)
-      expected = "%s\n" % pprint_address(name, subject, options)
-      assert expected == got, "expected\n<EXP>%s</EXP>\ngot\n<GOT>%s</GOT>" % (expected, got)
-    else:
-      ParserBase.valid(self, addr, (name, subject, options))
+            po = Popen([parser, mode], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        except ImportError as e:
+            raise Skipped("%s" % e)
+        except OSError as e:
+            raise Skipped("%s: %s" % (e, parser))
+        out, _ = po.communicate(input=input)
+        return out
 
-  def invalid(self, addr, error=None):
-    parser = self.parser()
-    if parser:
-      got = self.call(parser, "parse", addr)
-      expected = "ERROR: %s\n" % error
-      assert expected == got, "expected %r, got %r" % (expected, got)
-    else:
-      ParserBase.invalid(self, addr, error)
+    def parser(self):
+        return self.config.defines.get("address.parser")
 
-  def testDashInId1(self):
-    self.lex("foo-bar", ID)
+    def do_lex(self, st):
+        parser = self.parser()
+        if parser:
+            out = self.call(parser, "lex", st)
+            lines = out.split("\n")
+            toks = []
+            for line in lines:
+                if line.strip():
+                    name, position, value = self.fields(line, 3)
+                    toks.append(Token(LEXER.type(name), value, position, st))
+            return toks
+        else:
+            return lex(st)
 
-  def testDashInId2(self):
-    self.lex("foo-3", ID)
+    def do_parse(self, st):
+        return parse(st)
 
-  def testDashAlone1(self):
-    self.lex("foo - bar", ID, SYM, ID)
+    def valid(self, addr, name=None, subject=None, options=None):
+        parser = self.parser()
+        if parser:
+            got = self.call(parser, "parse", addr)
+            expected = "%s\n" % pprint_address(name, subject, options)
+            assert expected == got, "expected\n<EXP>%s</EXP>\ngot\n<GOT>%s</GOT>" % (expected, got)
+        else:
+            ParserBase.valid(self, addr, (name, subject, options))
 
-  def testDashAlone2(self):
-    self.lex("foo - 3", ID, SYM, NUMBER)
+    def invalid(self, addr, error=None):
+        parser = self.parser()
+        if parser:
+            got = self.call(parser, "parse", addr)
+            expected = "ERROR: %s\n" % error
+            assert expected == got, "expected %r, got %r" % (expected, got)
+        else:
+            ParserBase.invalid(self, addr, error)
 
-  def testLeadingDash(self):
-    self.lex("-foo", SYM, ID)
+    def testDashInId1(self):
+        self.lex("foo-bar", ID)
 
-  def testTrailingDash(self):
-    self.lex("foo-", ID, SYM)
+    def testDashInId2(self):
+        self.lex("foo-3", ID)
 
-  def testNegativeNum(self):
-    self.lex("-3", NUMBER)
+    def testDashAlone1(self):
+        self.lex("foo - bar", ID, SYM, ID)
 
-  def testIdNum(self):
-    self.lex("id1", ID)
+    def testDashAlone2(self):
+        self.lex("foo - 3", ID, SYM, NUMBER)
 
-  def testIdSpaceNum(self):
-    self.lex("id 1", ID, NUMBER)
+    def testLeadingDash(self):
+        self.lex("-foo", SYM, ID)
 
-  def testHash(self):
-    self.valid("foo/bar.#", "foo", "bar.#")
+    def testTrailingDash(self):
+        self.lex("foo-", ID, SYM)
 
-  def testStar(self):
-    self.valid("foo/bar.*", "foo", "bar.*")
+    def testNegativeNum(self):
+        self.lex("-3", NUMBER)
 
-  def testColon(self):
-    self.valid("foo.bar/baz.qux:moo:arf", "foo.bar", "baz.qux:moo:arf")
+    def testIdNum(self):
+        self.lex("id1", ID)
 
-  def testOptions(self):
-    self.valid("foo.bar/baz.qux:moo:arf; {key: value}",
-               "foo.bar", "baz.qux:moo:arf", {"key": "value"})
+    def testIdSpaceNum(self):
+        self.lex("id 1", ID, NUMBER)
 
-  def testOptionsTrailingComma(self):
-    self.valid("name/subject; {key: value,}", "name", "subject",
-               {"key": "value"})
+    def testHash(self):
+        self.valid("foo/bar.#", "foo", "bar.#")
 
-  def testOptionsNone(self):
-    self.valid("name/subject; {key: None}", "name", "subject",
-               {"key": None})
+    def testStar(self):
+        self.valid("foo/bar.*", "foo", "bar.*")
 
-  def testSemiSubject(self):
-    self.valid("foo.bar/'baz.qux;moo:arf'; {key: value}",
-               "foo.bar", "baz.qux;moo:arf", {"key": "value"})
+    def testColon(self):
+        self.valid("foo.bar/baz.qux:moo:arf", "foo.bar", "baz.qux:moo:arf")
 
-  def testCommaSubject(self):
-    self.valid("foo.bar/baz.qux.{moo,arf}", "foo.bar", "baz.qux.{moo,arf}")
+    def testOptions(self):
+        self.valid("foo.bar/baz.qux:moo:arf; {key: value}",
+                   "foo.bar", "baz.qux:moo:arf", {"key": "value"})
 
-  def testCommaSubjectOptions(self):
-    self.valid("foo.bar/baz.qux.{moo,arf}; {key: value}", "foo.bar",
-               "baz.qux.{moo,arf}", {"key": "value"})
+    def testOptionsTrailingComma(self):
+        self.valid("name/subject; {key: value,}", "name", "subject",
+                   {"key": "value"})
 
-  def testUnbalanced(self):
-    self.valid("foo.bar/baz.qux.{moo,arf; {key: value}", "foo.bar",
-               "baz.qux.{moo,arf", {"key": "value"})
+    def testOptionsNone(self):
+        self.valid("name/subject; {key: None}", "name", "subject",
+                   {"key": None})
 
-  def testSlashQuote(self):
-    self.valid("foo.bar\\/baz.qux.{moo,arf; {key: value}",
-               "foo.bar/baz.qux.{moo,arf",
-               None, {"key": "value"})
+    def testSemiSubject(self):
+        self.valid("foo.bar/'baz.qux;moo:arf'; {key: value}",
+                   "foo.bar", "baz.qux;moo:arf", {"key": "value"})
 
-  def testSlashHexEsc1(self):
-    self.valid("foo.bar\\x00baz.qux.{moo,arf; {key: value}",
-               "foo.bar\x00baz.qux.{moo,arf",
-               None, {"key": "value"})
+    def testCommaSubject(self):
+        self.valid("foo.bar/baz.qux.{moo,arf}", "foo.bar", "baz.qux.{moo,arf}")
 
-  def testSlashHexEsc2(self):
-    self.valid("foo.bar\\xffbaz.qux.{moo,arf; {key: value}",
-               "foo.bar\xffbaz.qux.{moo,arf",
-               None, {"key": "value"})
+    def testCommaSubjectOptions(self):
+        self.valid("foo.bar/baz.qux.{moo,arf}; {key: value}", "foo.bar",
+                   "baz.qux.{moo,arf}", {"key": "value"})
 
-  def testSlashHexEsc3(self):
-    self.valid("foo.bar\\xFFbaz.qux.{moo,arf; {key: value}",
-               "foo.bar\xFFbaz.qux.{moo,arf",
-               None, {"key": "value"})
+    def testUnbalanced(self):
+        self.valid("foo.bar/baz.qux.{moo,arf; {key: value}", "foo.bar",
+                   "baz.qux.{moo,arf", {"key": "value"})
 
-  def testSlashUnicode1(self):
-    self.valid("foo.bar\\u1234baz.qux.{moo,arf; {key: value}",
-               u"foo.bar\u1234baz.qux.{moo,arf", None, {"key": "value"})
+    def testSlashQuote(self):
+        self.valid("foo.bar\\/baz.qux.{moo,arf; {key: value}",
+                   "foo.bar/baz.qux.{moo,arf",
+                   None, {"key": "value"})
 
-  def testSlashUnicode2(self):
-    self.valid("foo.bar\\u0000baz.qux.{moo,arf; {key: value}",
-               u"foo.bar\u0000baz.qux.{moo,arf", None, {"key": "value"})
+    def testSlashHexEsc1(self):
+        self.valid("foo.bar\\x00baz.qux.{moo,arf; {key: value}",
+                   "foo.bar\x00baz.qux.{moo,arf",
+                   None, {"key": "value"})
 
-  def testSlashUnicode3(self):
-    self.valid("foo.bar\\uffffbaz.qux.{moo,arf; {key: value}",
-               u"foo.bar\uffffbaz.qux.{moo,arf", None, {"key": "value"})
+    def testSlashHexEsc2(self):
+        self.valid("foo.bar\\xffbaz.qux.{moo,arf; {key: value}",
+                   "foo.bar\xffbaz.qux.{moo,arf",
+                   None, {"key": "value"})
 
-  def testSlashUnicode4(self):
-    self.valid("foo.bar\\uFFFFbaz.qux.{moo,arf; {key: value}",
-               u"foo.bar\uFFFFbaz.qux.{moo,arf", None, {"key": "value"})
+    def testSlashHexEsc3(self):
+        self.valid("foo.bar\\xFFbaz.qux.{moo,arf; {key: value}",
+                   "foo.bar\xFFbaz.qux.{moo,arf",
+                   None, {"key": "value"})
 
-  def testNoName(self):
-    self.invalid("; {key: value}",
-                 "unexpected token SEMI(;) line:1,0:; {key: value}")
+    def testSlashUnicode1(self):
+        self.valid("foo.bar\\u1234baz.qux.{moo,arf; {key: value}",
+                   "foo.bar\u1234baz.qux.{moo,arf", None, {"key": "value"})
 
-  def testEmpty(self):
-    self.invalid("", "unexpected token EOF line:1,0:")
+    def testSlashUnicode2(self):
+        self.valid("foo.bar\\u0000baz.qux.{moo,arf; {key: value}",
+                   "foo.bar\u0000baz.qux.{moo,arf", None, {"key": "value"})
 
-  def testNoNameSlash(self):
-    self.invalid("/asdf; {key: value}",
-                 "unexpected token SLASH(/) line:1,0:/asdf; {key: value}")
+    def testSlashUnicode3(self):
+        self.valid("foo.bar\\uffffbaz.qux.{moo,arf; {key: value}",
+                   "foo.bar\uffffbaz.qux.{moo,arf", None, {"key": "value"})
 
-  def testBadOptions1(self):
-    self.invalid("name/subject; {",
-                 "expecting (NUMBER, STRING, ID, LBRACE, LBRACK, RBRACE), "
-                 "got EOF line:1,15:name/subject; {")
+    def testSlashUnicode4(self):
+        self.valid("foo.bar\\uFFFFbaz.qux.{moo,arf; {key: value}",
+                   "foo.bar\uFFFFbaz.qux.{moo,arf", None, {"key": "value"})
 
-  def testBadOptions2(self):
-    self.invalid("name/subject; { 3",
-                 "expecting COLON, got EOF "
-                 "line:1,17:name/subject; { 3")
+    def testNoName(self):
+        self.invalid("; {key: value}",
+                     "unexpected token SEMI(;) line:1,0:; {key: value}")
 
-  def testBadOptions3(self):
-    self.invalid("name/subject; { key:",
-                 "expecting (NUMBER, STRING, ID, LBRACE, LBRACK), got EOF "
-                 "line:1,20:name/subject; { key:")
+    def testEmpty(self):
+        self.invalid("", "unexpected token EOF line:1,0:")
 
-  def testBadOptions4(self):
-    self.invalid("name/subject; { key: value",
-                 "expecting (COMMA, RBRACE), got EOF "
-                 "line:1,26:name/subject; { key: value")
+    def testNoNameSlash(self):
+        self.invalid("/asdf; {key: value}",
+                     "unexpected token SLASH(/) line:1,0:/asdf; {key: value}")
 
-  def testBadOptions5(self):
-    self.invalid("name/subject; { key: value asdf",
-                 "expecting (COMMA, RBRACE), got ID(asdf) "
-                 "line:1,27:name/subject; { key: value asdf")
+    def testBadOptions1(self):
+        self.invalid("name/subject; {",
+                     "expecting (NUMBER, STRING, ID, LBRACE, LBRACK, RBRACE), "
+                     "got EOF line:1,15:name/subject; {")
 
-  def testBadOptions6(self):
-    self.invalid("name/subject; { key: value,",
-                 "expecting (NUMBER, STRING, ID, LBRACE, LBRACK, RBRACE), got EOF "
-                 "line:1,27:name/subject; { key: value,")
+    def testBadOptions2(self):
+        self.invalid("name/subject; { 3",
+                     "expecting COLON, got EOF "
+                     "line:1,17:name/subject; { 3")
 
-  def testBadOptions7(self):
-    self.invalid("name/subject; { key: value } asdf",
-                 "expecting EOF, got ID(asdf) "
-                 "line:1,29:name/subject; { key: value } asdf")
+    def testBadOptions3(self):
+        self.invalid("name/subject; { key:",
+                     "expecting (NUMBER, STRING, ID, LBRACE, LBRACK), got EOF "
+                     "line:1,20:name/subject; { key:")
 
-  def testList1(self):
-    self.valid("name/subject; { key: [] }", "name", "subject", {"key": []})
+    def testBadOptions4(self):
+        self.invalid("name/subject; { key: value",
+                     "expecting (COMMA, RBRACE), got EOF "
+                     "line:1,26:name/subject; { key: value")
 
-  def testList2(self):
-    self.valid("name/subject; { key: ['one'] }", "name", "subject", {"key": ['one']})
+    def testBadOptions5(self):
+        self.invalid("name/subject; { key: value asdf",
+                     "expecting (COMMA, RBRACE), got ID(asdf) "
+                     "line:1,27:name/subject; { key: value asdf")
 
-  def testList3(self):
-    self.valid("name/subject; { key: [1, 2, 3] }", "name", "subject",
-               {"key": [1, 2, 3]})
+    def testBadOptions6(self):
+        self.invalid("name/subject; { key: value,",
+                     "expecting (NUMBER, STRING, ID, LBRACE, LBRACK, RBRACE), got EOF "
+                     "line:1,27:name/subject; { key: value,")
 
-  def testList4(self):
-    self.valid("name/subject; { key: [1, [2, 3], 4] }", "name", "subject",
-               {"key": [1, [2, 3], 4]})
+    def testBadOptions7(self):
+        self.invalid("name/subject; { key: value } asdf",
+                     "expecting EOF, got ID(asdf) "
+                     "line:1,29:name/subject; { key: value } asdf")
 
-  def testBadList1(self):
-    self.invalid("name/subject; { key: [ }", "expecting (NUMBER, STRING, ID, LBRACE, LBRACK), "
-                 "got RBRACE(}) line:1,23:name/subject; { key: [ }")
+    def testList1(self):
+        self.valid("name/subject; { key: [] }", "name", "subject", {"key": []})
 
-  def testBadList2(self):
-    self.invalid("name/subject; { key: [ 1 }", "expecting (COMMA, RBRACK), "
-                 "got RBRACE(}) line:1,25:name/subject; { key: [ 1 }")
+    def testList2(self):
+        self.valid("name/subject; { key: ['one'] }", "name", "subject", {"key": ['one']})
 
-  def testBadList3(self):
-    self.invalid("name/subject; { key: [ 1 2 }", "expecting (COMMA, RBRACK), "
-                 "got NUMBER(2) line:1,25:name/subject; { key: [ 1 2 }")
+    def testList3(self):
+        self.valid("name/subject; { key: [1, 2, 3] }", "name", "subject",
+                   {"key": [1, 2, 3]})
 
-  def testBadList4(self):
-    self.invalid("name/subject; { key: [ 1 2 ] }", "expecting (COMMA, RBRACK), "
-                 "got NUMBER(2) line:1,25:name/subject; { key: [ 1 2 ] }")
+    def testList4(self):
+        self.valid("name/subject; { key: [1, [2, 3], 4] }", "name", "subject",
+                   {"key": [1, [2, 3], 4]})
 
-  def testMap1(self):
-    self.valid("name/subject; { 'key': value }",
-               "name", "subject", {"key": "value"})
+    def testBadList1(self):
+        self.invalid("name/subject; { key: [ }", "expecting (NUMBER, STRING, ID, LBRACE, LBRACK), "
+                                                 "got RBRACE(}) line:1,23:name/subject; { key: [ }")
 
-  def testMap2(self):
-    self.valid("name/subject; { 1: value }", "name", "subject", {1: "value"})
+    def testBadList2(self):
+        self.invalid("name/subject; { key: [ 1 }", "expecting (COMMA, RBRACK), "
+                                                   "got RBRACE(}) line:1,25:name/subject; { key: [ 1 }")
 
-  def testMap3(self):
-    self.valid('name/subject; { "foo.bar": value }',
-               "name", "subject", {"foo.bar": "value"})
+    def testBadList3(self):
+        self.invalid("name/subject; { key: [ 1 2 }", "expecting (COMMA, RBRACK), "
+                                                     "got NUMBER(2) line:1,25:name/subject; { key: [ 1 2 }")
 
-  def testBoolean(self):
-    self.valid("name/subject; { true1: True, true2: true, "
-               "false1: False, false2: false }",
-               "name", "subject", {"true1": True, "true2": True,
-                                   "false1": False, "false2": False})
+    def testBadList4(self):
+        self.invalid("name/subject; { key: [ 1 2 ] }", "expecting (COMMA, RBRACK), "
+                                                       "got NUMBER(2) line:1,25:name/subject; { key: [ 1 2 ] }")
+
+    def testMap1(self):
+        self.valid("name/subject; { 'key': value }",
+                   "name", "subject", {"key": "value"})
+
+    def testMap2(self):
+        self.valid("name/subject; { 1: value }", "name", "subject", {1: "value"})
+
+    def testMap3(self):
+        self.valid('name/subject; { "foo.bar": value }',
+                   "name", "subject", {"foo.bar": "value"})
+
+    def testBoolean(self):
+        self.valid("name/subject; { true1: True, true2: true, "
+                   "false1: False, false2: false }",
+                   "name", "subject", {"true1": True, "true2": True,
+                                       "false1": False, "false2": False})

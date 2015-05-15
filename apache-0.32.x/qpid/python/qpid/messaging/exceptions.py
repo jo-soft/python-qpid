@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -18,162 +18,197 @@
 #
 
 class Timeout(Exception):
-  pass
+    pass
+
 
 ## Messaging Errors
 
 class MessagingError(Exception):
+    def __init__(self, code=None, text=None, **info):
+        self.code = code
+        self.text = text
+        self.info = info
+        if self.code is None:
+            msg = self.text
+        else:
+            msg = "%s(%s)" % (self.text, self.code)
+        if info:
+            msg += " " + ", ".join(["%s=%r" % (k, v) for k, v in list(self.info.items())])
+        Exception.__init__(self, msg)
 
-  def __init__(self, code=None, text=None, **info):
-    self.code = code
-    self.text = text
-    self.info = info
-    if self.code is None:
-      msg = self.text
-    else:
-      msg = "%s(%s)" % (self.text, self.code)
-    if info:
-      msg += " " + ", ".join(["%s=%r" % (k, v) for k, v in self.info.items()])
-    Exception.__init__(self, msg)
+
 class InternalError(MessagingError):
-  pass
+    pass
+
 
 ## Connection Errors
 
 class ConnectionError(MessagingError):
-  """
-  The base class for all connection related exceptions.
-  """
-  pass
+    """
+    The base class for all connection related exceptions.
+    """
+    pass
+
 
 class ConnectError(ConnectionError):
-  """
-  Exception raised when there is an error connecting to the remote
-  peer.
-  """
-  pass
+    """
+    Exception raised when there is an error connecting to the remote
+    peer.
+    """
+    pass
+
 
 class VersionError(ConnectError):
-  pass
+    pass
+
 
 class AuthenticationFailure(ConnectError):
-  pass
+    pass
+
 
 class ConnectionClosed(ConnectionError):
-  pass
+    pass
+
 
 class HeartbeatTimeout(ConnectionError):
-  pass
+    pass
+
 
 ## Session Errors
 
 class SessionError(MessagingError):
-  pass
+    pass
+
 
 class Detached(SessionError):
-  """
-  Exception raised when an operation is attempted that is illegal when
-  detached.
-  """
-  pass
+    """
+    Exception raised when an operation is attempted that is illegal when
+    detached.
+    """
+    pass
+
 
 class NontransactionalSession(SessionError):
-  """
-  Exception raised when commit or rollback is attempted on a non
-  transactional session.
-  """
-  pass
+    """
+    Exception raised when commit or rollback is attempted on a non
+    transactional session.
+    """
+    pass
+
 
 class TransactionError(SessionError):
-  """Base class for transactional errors"""
-  pass
+    """Base class for transactional errors"""
+    pass
+
 
 class TransactionAborted(TransactionError):
-  """The transaction was automatically rolled back.  This could be due to an error
-  on the broker, such as a store failure, or a connection failure during the
-  transaction"""
-  pass
+    """The transaction was automatically rolled back.  This could be due to an error
+    on the broker, such as a store failure, or a connection failure during the
+    transaction"""
+    pass
+
 
 class TransactionUnknown(TransactionError):
-  """ The outcome of the transaction on the broker (commit or roll-back) is not
-  known. This occurs when the connection fails after we sent the commit but
-  before we received a response."""
-  pass
+    """ The outcome of the transaction on the broker (commit or roll-back) is not
+    known. This occurs when the connection fails after we sent the commit but
+    before we received a response."""
+    pass
+
 
 class UnauthorizedAccess(SessionError):
-  pass
+    pass
+
 
 class ServerError(SessionError):
-  pass
+    pass
+
 
 class SessionClosed(SessionError):
-  pass
+    pass
+
 
 ## Link Errors
 
 class LinkError(MessagingError):
-  pass
+    pass
+
 
 class InsufficientCapacity(LinkError):
-  pass
+    pass
+
 
 class AddressError(LinkError):
-  pass
+    pass
+
 
 class MalformedAddress(AddressError):
-  pass
+    pass
+
 
 class InvalidOption(AddressError):
-  pass
+    pass
+
 
 class ResolutionError(AddressError):
-  pass
+    pass
+
 
 class AssertionFailed(ResolutionError):
-  pass
+    pass
+
 
 class NotFound(ResolutionError):
-  pass
+    pass
+
 
 class LinkClosed(LinkError):
-  pass
+    pass
+
 
 ## Sender Errors
 
 class SenderError(LinkError):
-  pass
+    pass
+
 
 class SendError(SenderError):
-  pass
+    pass
+
 
 class TargetCapacityExceeded(SendError):
-  pass
+    pass
+
 
 ## Receiver Errors
 
 class ReceiverError(LinkError):
-  pass
+    pass
+
 
 class FetchError(ReceiverError):
-  pass
+    pass
+
 
 class Empty(FetchError):
-  """
-  Exception raised by L{Receiver.fetch} when there is no message
-  available within the alloted time.
-  """
-  pass
+    """
+    Exception raised by L{Receiver.fetch} when there is no message
+    available within the alloted time.
+    """
+    pass
+
 
 ## Message Content errors
 class ContentError(MessagingError):
-  """
-  This type of exception will be returned to the application
-  once, and will not block further requests
-  """
-  pass
+    """
+    This type of exception will be returned to the application
+    once, and will not block further requests
+    """
+    pass
+
 
 class EncodeError(ContentError):
-  pass
+    pass
+
 
 class DecodeError(ContentError):
-  pass
+    pass

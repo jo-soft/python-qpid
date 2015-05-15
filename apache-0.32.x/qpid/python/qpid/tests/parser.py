@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 # 
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -19,19 +19,19 @@
 
 from qpid.parser import ParseError
 
+
 class ParserBase:
+    def lex(self, addr, *types):
+        toks = [t.type for t in self.do_lex(addr) if t.type not in self.EXCLUDE]
+        assert list(types) == toks, "expected %s, got %s" % (types, toks)
 
-  def lex(self, addr, *types):
-    toks = [t.type for t in self.do_lex(addr) if t.type not in self.EXCLUDE]
-    assert list(types) == toks, "expected %s, got %s" % (types, toks)
+    def valid(self, addr, expected):
+        got = self.do_parse(addr)
+        assert expected == got, "expected %s, got %s" % (expected, got)
 
-  def valid(self, addr, expected):
-    got = self.do_parse(addr)
-    assert expected == got, "expected %s, got %s" % (expected, got)
-
-  def invalid(self, addr, error=None):
-    try:
-      p = self.do_parse(addr)
-      assert False, "invalid address parsed: %s" % p
-    except ParseError, e:
-      assert error == str(e), "expected %r, got %r" % (error, str(e))
+    def invalid(self, addr, error=None):
+        try:
+            p = self.do_parse(addr)
+            assert False, "invalid address parsed: %s" % p
+        except ParseError as e:
+            assert error == str(e), "expected %r, got %r" % (error, str(e))

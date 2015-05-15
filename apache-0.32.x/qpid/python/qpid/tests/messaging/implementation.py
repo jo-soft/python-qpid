@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -17,12 +17,13 @@
 # under the License.
 #
 import os
+
 if 'QPID_USE_SWIG_CLIENT' in os.environ and os.environ['QPID_USE_SWIG_CLIENT']:
-  try:
-    from qpid_messaging import *
-    from qpid.datatypes import uuid4
-  except ImportError, e:
-    print "Swigged client not found. Falling back to pure bindings, %s\n" % e
-    from qpid.messaging import *
+    try:
+        from qpid_messaging import *
+        from qpid.datatypes import uuid4
+    except ImportError as e:
+        print("Swigged client not found. Falling back to pure bindings, %s\n" % e)
+        from qpid.messaging import *
 else:
-  from qpid.messaging import *
+    from qpid.messaging import *

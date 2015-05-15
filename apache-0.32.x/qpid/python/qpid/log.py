@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -20,9 +20,10 @@
 from logging import getLogger, StreamHandler, Formatter
 from logging import DEBUG, INFO, WARN, ERROR, CRITICAL
 
+
 def enable(name=None, level=WARN, file=None):
-  log = getLogger(name)
-  handler = StreamHandler(file)
-  handler.setFormatter(Formatter("%(asctime)s %(levelname)s %(message)s"))
-  log.addHandler(handler)
-  log.setLevel(level)
+    log = getLogger(name)
+    handler = StreamHandler(file)
+    handler.setFormatter(Formatter("%(asctime)s %(levelname)s %(message)s"))
+    log.addHandler(handler)
+    log.setLevel(level)

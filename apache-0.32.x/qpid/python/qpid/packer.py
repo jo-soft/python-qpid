@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -19,18 +19,20 @@
 
 import struct
 
+
 class Packer:
+    def read(self, n):
+        abstract
 
-  def read(self, n): abstract
+    def write(self, s):
+        abstract
 
-  def write(self, s): abstract
+    def unpack(self, fmt):
+        values = struct.unpack(fmt, self.read(struct.calcsize(fmt)))
+        if len(values) == 1:
+            return values[0]
+        else:
+            return values
 
-  def unpack(self, fmt):
-    values = struct.unpack(fmt, self.read(struct.calcsize(fmt)))
-    if len(values) == 1:
-      return values[0]
-    else:
-      return values
-
-  def pack(self, fmt, *args):
-    self.write(struct.pack(fmt, *args))
+    def pack(self, fmt, *args):
+        self.write(struct.pack(fmt, *args))

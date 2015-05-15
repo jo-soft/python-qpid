@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -19,38 +19,43 @@
 
 import sys
 
-from ops import *
+from .ops import *
+
 
 def METHOD(module, op):
-  method = lambda self, *args, **kwargs: self.invoke(op, args, kwargs)
-  if sys.version_info[:2] > (2, 3):
-    method.__name__ = op.__name__
-    method.__doc__ = op.__doc__
-    method.__module__ = module
-  return method
+    method = lambda self, *args, **kwargs: self.invoke(op, args, kwargs)
+    if sys.version_info[:2] > (2, 3):
+        method.__name__ = op.__name__
+        method.__doc__ = op.__doc__
+        method.__module__ = module
+    return method
+
 
 def generate(module, operations):
-  dict = {}
+    dict = {}
 
-  for name, enum in ENUMS.items():
-    if isinstance(name, basestring):
-      dict[name] = enum
+    for name, enum in list(ENUMS.items()):
+        if isinstance(name, str):
+            dict[name] = enum
 
-  for name, op in COMPOUND.items():
-    if isinstance(name, basestring):
-      dict[name] = METHOD(module, op)
+    for name, op in list(COMPOUND.items()):
+        if isinstance(name, str):
+            dict[name] = METHOD(module, op)
 
-  for name, op in operations.items():
-    if isinstance(name, basestring):
-      dict[name] = METHOD(module, op)
+    for name, op in list(operations.items()):
+        if isinstance(name, str):
+            dict[name] = METHOD(module, op)
 
-  return dict
+    return dict
+
 
 def invoker(name, operations):
-  return type(name, (), generate(invoker.__module__, operations))
+    return type(name, (), generate(invoker.__module__, operations))
+
 
 def command_invoker():
-  return invoker("CommandInvoker", COMMANDS)
+    return invoker("CommandInvoker", COMMANDS)
+
 
 def control_invoker():
-  return invoker("ControlInvoker", CONTROLS)
+    return invoker("ControlInvoker", CONTROLS)

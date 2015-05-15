@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -19,22 +19,23 @@
 
 __SELF__ = object()
 
+
 class Constant:
+    def __init__(self, name, value=__SELF__):
+        self.name = name
+        if value is __SELF__:
+            self.value = self
+        else:
+            self.value = value
 
-  def __init__(self, name, value=__SELF__):
-    self.name = name
-    if value is __SELF__:
-      self.value = self
-    else:
-      self.value = value
+    def __repr__(self):
+        return self.name
 
-  def __repr__(self):
-    return self.name
 
 AMQP_PORT = 5672
 AMQPS_PORT = 5671
 
-UNLIMITED = Constant("UNLIMITED", 0xFFFFFFFFL)
+UNLIMITED = Constant("UNLIMITED", 0xFFFFFFFF)
 
 REJECTED = Constant("REJECTED")
 RELEASED = Constant("RELEASED")

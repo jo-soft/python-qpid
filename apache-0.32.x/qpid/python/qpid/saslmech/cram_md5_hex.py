@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -17,14 +17,14 @@
 # under the License.
 #
 
-from sasl import Sasl
+from .sasl import Sasl
 from hmac import HMAC
 from hashlib import md5
 
-class CRAM_MD5_HEX(Sasl):
 
-  def response(self, challenge):
-    m = md5()
-    m.update(self.password)
-    digest = HMAC( m.hexdigest(), challenge).hexdigest()
-    return "%s %s" % (self.user, digest)
+class CRAM_MD5_HEX(Sasl):
+    def response(self, challenge):
+        m = md5()
+        m.update(self.password)
+        digest = HMAC(m.hexdigest(), challenge).hexdigest()
+        return "%s %s" % (self.user, digest)

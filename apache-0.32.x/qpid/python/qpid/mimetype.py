@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -17,8 +17,8 @@
 # under the License.
 #
 import re, rfc822
-from lexer import Lexicon, LexError
-from parser import Parser, ParseError
+from .lexer import Lexicon, LexError
+from .parser import Parser, ParseError
 
 l = Lexicon()
 
@@ -34,73 +34,76 @@ EOF = l.eof("EOF")
 
 LEXER = l.compile()
 
+
 def lex(st):
-  return LEXER.lex(st)
+    return LEXER.lex(st)
+
 
 class MimeTypeParser(Parser):
+    def __init__(self, tokens):
+        Parser.__init__(self, [t for t in tokens if t.type is not WSPACE])
 
-  def __init__(self, tokens):
-    Parser.__init__(self, [t for t in tokens if t.type is not WSPACE])
+    def parse(self):
+        result = self.mimetype()
+        self.eat(EOF)
+        return result
 
-  def parse(self):
-    result = self.mimetype()
-    self.eat(EOF)
-    return result
+    def mimetype(self):
+        self.remove_comments()
+        self.reset()
 
-  def mimetype(self):
-    self.remove_comments()
-    self.reset()
+        type = self.eat(TOKEN).value.lower()
+        self.eat(SLASH)
+        subtype = self.eat(TOKEN).value.lower()
 
-    type = self.eat(TOKEN).value.lower()
-    self.eat(SLASH)
-    subtype = self.eat(TOKEN).value.lower()
+        params = []
+        while True:
+            if self.matches(SEMI):
+                params.append(self.parameter())
+            else:
+                break
 
-    params = []
-    while True:
-      if self.matches(SEMI):
-        params.append(self.parameter())
-      else:
-        break
+        return type, subtype, params
 
-    return type, subtype, params
+    def remove_comments(self):
+        while True:
+            self.eat_until(LPAREN, EOF)
+            if self.matches(LPAREN):
+                self.remove(*self.comment())
+            else:
+                break
 
-  def remove_comments(self):
-    while True:
-      self.eat_until(LPAREN, EOF)
-      if self.matches(LPAREN):
-        self.remove(*self.comment())
-      else:
-        break
+    def comment(self):
+        start = self.eat(LPAREN)
 
-  def comment(self):
-    start = self.eat(LPAREN)
+        while True:
+            self.eat_until(LPAREN, RPAREN)
+            if self.matches(LPAREN):
+                self.comment()
+            else:
+                break
 
-    while True:
-      self.eat_until(LPAREN, RPAREN)
-      if self.matches(LPAREN):
-        self.comment()
-      else:
-        break
+        end = self.eat(RPAREN)
+        return start, end
 
-    end = self.eat(RPAREN)
-    return start, end
+    def parameter(self):
+        self.eat(SEMI)
+        name = self.eat(TOKEN).value
+        self.eat(EQUAL)
+        value = self.value()
+        return name, value
 
-  def parameter(self):
-    self.eat(SEMI)
-    name = self.eat(TOKEN).value
-    self.eat(EQUAL)
-    value = self.value()
-    return name, value
+    def value(self):
+        if self.matches(TOKEN):
+            return self.eat().value
+        elif self.matches(STRING):
+            return rfc822.unquote(self.eat().value)
+        else:
+            raise ParseError(next(self), TOKEN, STRING)
 
-  def value(self):
-    if self.matches(TOKEN):
-      return self.eat().value
-    elif self.matches(STRING):
-      return rfc822.unquote(self.eat().value)
-    else:
-      raise ParseError(self.next(), TOKEN, STRING)
 
 def parse(addr):
-  return MimeTypeParser(lex(addr)).parse()
+    return MimeTypeParser(lex(addr)).parse()
+
 
 __all__ = ["parse", "ParseError"]

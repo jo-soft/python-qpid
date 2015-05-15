@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 # 
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -22,32 +22,33 @@ Delegate implementation intended for use with the peer module.
 """
 
 import threading, inspect, traceback, sys
-from connection08 import Method, Request, Response
+from .connection08 import Method, Request, Response
+
 
 def _handler_name(method):
-  return "%s_%s" % (method.klass.name, method.name)
+    return "%s_%s" % (method.klass.name, method.name)
+
 
 class Delegate:
+    def __init__(self):
+        self.handlers = {}
+        self.invokers = {}
 
-  def __init__(self):
-    self.handlers = {}
-    self.invokers = {}
+    def __call__(self, channel, frame):
+        method = frame.method
 
-  def __call__(self, channel, frame):
-    method = frame.method
+        try:
+            handler = self.handlers[method]
+        except KeyError:
+            name = _handler_name(method)
+            handler = getattr(self, name)
+            self.handlers[method] = handler
 
-    try:
-      handler = self.handlers[method]
-    except KeyError:
-      name = _handler_name(method)
-      handler = getattr(self, name)
-      self.handlers[method] = handler
+        try:
+            return handler(channel, frame)
+        except:
+            print("Error in handler: %s\n\n%s" % \
+                  (_handler_name(method), traceback.format_exc()), file=sys.stderr)
 
-    try:
-      return handler(channel, frame)
-    except:
-      print >> sys.stderr, "Error in handler: %s\n\n%s" % \
-            (_handler_name(method), traceback.format_exc())
-
-  def closed(self, reason):
-    print "Connection closed: %s" % reason
+        def closed(self, reason):
+            print("Connection closed: %s" % reason)

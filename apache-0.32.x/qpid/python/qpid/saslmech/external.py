@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -17,11 +17,11 @@
 # under the License.
 #
 
-from sasl import Sasl
+from .sasl import Sasl
 
 
 class EXTERNAL(Sasl):
-  """Sasl mechanism used when SSL with client-auth is in use"""
+    """Sasl mechanism used when SSL with client-auth is in use"""
 
-  def prerequisitesOk(self):
-    return True
+    def prerequisitesOk(self):
+        return True

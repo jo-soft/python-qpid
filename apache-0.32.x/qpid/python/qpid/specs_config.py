@@ -7,7 +7,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -19,7 +19,7 @@
 
 import os
 
-AMQP_SPEC_DIR=os.path.join(os.path.dirname(os.path.abspath(__file__)), "specs")
+AMQP_SPEC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "specs")
 amqp_spec = os.path.join(AMQP_SPEC_DIR, "amqp-0-10-qpid-errata-stripped.xml")
 amqp_spec_0_8 = os.path.join(AMQP_SPEC_DIR, "amqp-0-8-qpid-stripped.xml")
 amqp_spec_0_9 = os.path.join(AMQP_SPEC_DIR, "amqp-0-9-qpid-stripped.xml")
