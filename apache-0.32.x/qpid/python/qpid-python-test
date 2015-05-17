@@ -569,11 +569,7 @@ class Harness:
                 if s.inspect(obj):
                     self.tests.extend(s.extract(obj))
                     for child in s.descend(obj):
-                        try:
-                            if not (child in self.scanned or child in objects):
-                                objects.append(child)
-                        except:
-                            import ipdb; ipdb.set_trace()
+                        objects.append(child)
             self.scanned.append(obj)
 
 
