@@ -17,8 +17,13 @@
 # under the License.
 #
 
+import sys
 from qpid.codec010 import StringCodec
 from qpid.ops import PRIMITIVE
+
+if sys.version > '3':
+    buffer = memoryview
+
 
 
 def codec(name):
@@ -43,7 +48,7 @@ TYPE_MAPPINGS = {
     list: "amqp/list",
     str: "text/plain; charset=utf8",
     str: "text/plain",
-    buffer: None,
+    5: None,
     str: None,
     None.__class__: None
 }

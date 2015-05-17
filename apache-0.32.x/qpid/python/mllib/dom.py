@@ -20,8 +20,9 @@
 """
 Simple DOM for both SGML and XML documents.
 """
+import collections
 
-from . import transforms
+from mllib import transforms
 
 
 class Container:
@@ -173,8 +174,14 @@ class Leaf(Component, Dispatcher):
     base = None
 
     def __init__(self, data):
-        assert isinstance(data, str)
+        import sys
+        if not sys.version > '3':
+            if isinstance(data, str):
+                data = u'%s' % data
         self.data = data
+
+
+
 
 
 class Data(Leaf):

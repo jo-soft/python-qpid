@@ -16,8 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-import re, rfc822
-from .lexer import Lexicon, LexError
+from .lexer import Lexicon
 from .parser import Parser, ParseError
 
 l = Lexicon()
@@ -37,6 +36,16 @@ LEXER = l.compile()
 
 def lex(st):
     return LEXER.lex(st)
+
+
+def unquote(s):
+    # copy of rfc8ss.unquote, because this is not available in python3 and to avoid an additional import.
+    if len(s) > 1:
+        if s.startswith('"') and s.endswith('"'):
+            return s[1:-1].replace('\\\\', '\\').replace('\\"', '"')
+        if s.startswith('<') and s.endswith('>'):
+            return s[1:-1]
+    return s
 
 
 class MimeTypeParser(Parser):
@@ -97,7 +106,7 @@ class MimeTypeParser(Parser):
         if self.matches(TOKEN):
             return self.eat().value
         elif self.matches(STRING):
-            return rfc822.unquote(self.eat().value)
+            unquote(self.eat().value)
         else:
             raise ParseError(next(self), TOKEN, STRING)
 

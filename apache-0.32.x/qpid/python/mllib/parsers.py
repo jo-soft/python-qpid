@@ -21,7 +21,9 @@
 Parsers for SGML and XML to dom.
 """
 
+from lxml import etree
 from .dom import *
+from lxml.sax import ElementTreeContentHandler
 
 
 class Parser:
@@ -72,13 +74,10 @@ class Parser:
             self.node = self.node.parent
 
 
-class SGMLParser(sgmllib.SGMLParser):
+class SGMLParser(etree.XMLParser):
     def __init__(self, entitydefs=None):
-        sgmllib.SGMLParser.__init__(self)
-        if entitydefs == None:
-            self.entitydefs = {}
-        else:
-            self.entitydefs = entitydefs
+        super(SGMLParser, self).__init__()
+        self.entitydefs = entitydefs or {}
         self.parser = Parser()
 
     def unknown_starttag(self, name, attrs):
@@ -100,21 +99,24 @@ class SGMLParser(sgmllib.SGMLParser):
         self.parser.end(name)
 
     def close(self):
-        sgmllib.SGMLParser.close(self)
+        etree.XMLParser.close(self)
         self.parser.balance()
         assert self.parser.node == self.parser.tree
 
 
-class XMLParser(xml.sax.handler.ContentHandler):
+class XMLParser(ElementTreeContentHandler):
     def __init__(self):
+        ElementTreeContentHandler.__init__(self)
         self.parser = Parser()
         self.locator = None
 
     def line(self):
-        if self.locator != None:
-            self.parser.line(self.locator.getSystemId(),
+        if self.locator:
+            self.parser.line(
+                self.locator.getSystemId(),
                 self.locator.getLineNumber(),
-                self.locator.getColumnNumber())
+                self.locator.getColumnNumber()
+            )
 
     def setDocumentLocator(self, locator):
         self.locator = locator

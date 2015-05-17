@@ -17,7 +17,7 @@
 # under the License.
 #
 
-from . import connection
+from qpid import connection
 
 
 class Struct:

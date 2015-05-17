@@ -17,13 +17,13 @@
 # under the License.
 #
 
-import os, connection, session
-from .util import notify, get_client_properties_with_defaults
-from .datatypes import RangedSet
-from .exceptions import VersionError, Closed
+from qpid import session
+from qpid.connection import Channel, ChannelBusy, SessionBusy
+from qpid.util import notify, get_client_properties_with_defaults
+from qpid.datatypes import RangedSet
+from qpid.exceptions import VersionError, Closed
 from logging import getLogger
-from .ops import Control
-import sys
+from qpid.ops import Control
 from qpid import sasl
 
 log = getLogger("qpid.io.ctl")
@@ -37,7 +37,7 @@ class Delegate:
     def received(self, op):
         ssn = self.connection.attached.get(op.channel)
         if ssn is None:
-            ch = connection.Channel(self.connection, op.channel)
+            ch = Channel(self.connection, op.channel)
         else:
             ch = ssn.channel
 
@@ -66,9 +66,9 @@ class Delegate:
         try:
             self.connection.attach(a.name, ch, self.delegate, a.force)
             ch.session_attached(a.name)
-        except connection.ChannelBusy:
+        except ChannelBusy:
             ch.session_detached(a.name)
-        except connection.SessionBusy:
+        except SessionBusy:
             ch.session_detached(a.name)
 
     def session_attached(self, ch, a):
@@ -120,9 +120,8 @@ class Delegate:
 class Server(Delegate):
     def start(self):
         self.connection.read_header()
-        # XXX
         self.connection.write_header(0, 10)
-        connection.Channel(self.connection, 0).connection_start(mechanisms=["ANONYMOUS"])
+        Channel(self.connection, 0).connection_start(mechanisms=["ANONYMOUS"])
 
     def connection_start_ok(self, ch, start_ok):
         ch.connection_tune(channel_max=65535)

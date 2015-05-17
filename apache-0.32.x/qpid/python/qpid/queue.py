@@ -23,7 +23,10 @@ implementation to add a close() method so that threads blocking on the
 content of a queue can be notified if the queue is no longer in use.
 """
 
-from queue import Queue as BaseQueue, Empty, Full
+try:
+    from Queue import Queue as BaseQueue, Empty, Full
+except ImportError:
+    from queue import Queue as BaseQueue, Empty, Full
 from threading import Thread
 from .exceptions import Closed
 

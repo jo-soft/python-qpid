@@ -18,12 +18,18 @@
 #
 
 import datetime, string
+import sys
 from .packer import Packer
 from .datatypes import serial, timestamp, RangedSet, Struct, UUID
 from .ops import Compound, PRIMITIVE, COMPOUND
 
+# fix for python3 support can be removed when python2 support is dropped
+if sys.version > '3':
+    buffer = memoryview
 
-class CodecException(Exception): pass
+
+class CodecException(Exception):
+    pass
 
 
 def direct(t):

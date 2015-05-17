@@ -29,7 +29,10 @@ class so that the generated code can be reused in a variety of
 situations.
 """
 
-import re, new, mllib, qpid
+import re
+import mllib
+import types
+import qpid
 from .util import fill
 
 
@@ -121,7 +124,7 @@ class Spec(Metadata):
         return qpid.Struct(type, *args, **kwargs)
 
     def define_module(self, name, doc=None):
-        module = new.module(name, doc)
+        module = types.ModuleType(name, doc)
         module.__file__ = self.file
         for c in self.classes:
             cls = c.define_class(c.name)

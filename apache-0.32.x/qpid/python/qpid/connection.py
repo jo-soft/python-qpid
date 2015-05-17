@@ -17,37 +17,65 @@
 # under the License.
 #
 
-from . import datatypes, session
+from qpid import session
 from threading import Thread, Condition, RLock
-from .util import wait, notify
-from .codec010 import StringCodec
-from .framing import *
-from .session import Session
-from .generator import control_invoker
-from .exceptions import *
+from qpid.util import wait, notify
+from qpid.framing import *
+from qpid.session import Session
+from qpid.generator import control_invoker
+from qpid.exceptions import *
 from logging import getLogger
-import delegates, socket
-import sys
+import socket
 
 
-class ChannelBusy(Exception): pass
+class ChannelBusy(Exception):
+    pass
 
 
-class ChannelsBusy(Exception): pass
+class ChannelsBusy(Exception):
+    pass
 
 
-class SessionBusy(Exception): pass
+class SessionBusy(Exception):
+    pass
 
 
-class ConnectionFailed(Exception): pass
+class ConnectionFailed(Exception):
+    pass
+
+
+log = getLogger("qpid.io.ctl")
+
+
+class Channel(control_invoker()):
+    def __init__(self, connection, id):
+        self.connection = connection
+        self.id = id
+        self.session = None
+
+    def invoke(self, op, args, kwargs):
+        ctl = op(*args, **kwargs)
+        ctl.channel = self.id
+        self.connection.write_op(ctl)
+        log.debug("SENT %s", ctl)
+
+    def __str__(self):
+        return "%s[%s]" % (self.connection, self.id)
+
+    def __repr__(self):
+        return str(self)
+
+
+from qpid.delegates import Client, Server
 
 
 def client(*args, **kwargs):
-    return delegates.Client(*args, **kwargs)
+    return Client(*args, **kwargs)
 
 
 def server(*args, **kwargs):
-    return delegates.Server(*args, **kwargs)
+    return Server(*args, **kwargs)
+
 
 
 from .framer import Framer
@@ -231,28 +259,6 @@ class Connection(Framer):
 
     def __str__(self):
         return "%s:%s" % self.sock.getsockname()
-
-    def __repr__(self):
-        return str(self)
-
-
-log = getLogger("qpid.io.ctl")
-
-
-class Channel(control_invoker()):
-    def __init__(self, connection, id):
-        self.connection = connection
-        self.id = id
-        self.session = None
-
-    def invoke(self, op, args, kwargs):
-        ctl = op(*args, **kwargs)
-        ctl.channel = self.id
-        self.connection.write_op(ctl)
-        log.debug("SENT %s", ctl)
-
-    def __str__(self):
-        return "%s[%s]" % (self.connection, self.id)
 
     def __repr__(self):
         return str(self)

@@ -26,11 +26,12 @@ fields.
 The unit test for this module is located in tests/codec.py
 """
 
-import re, qpid, spec08, os
+import re, os
 from io import StringIO
 from struct import *
 from .reference import ReferenceId
 from logging import getLogger
+from qpid import spec08, Struct
 
 log = getLogger("qpid.codec")
 
@@ -611,7 +612,7 @@ class Codec:
         reserved = 8 * type.pack - len(type.fields)
         assert reserved >= 0
 
-        s = qpid.Struct(type)
+        s = Struct(type)
 
         for f in type.fields:
             if f.type == "bit":

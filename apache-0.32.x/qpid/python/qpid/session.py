@@ -18,14 +18,13 @@
 #
 
 from threading import Condition, RLock, Lock, currentThread
-from .generator import command_invoker
-from .datatypes import RangedSet, Struct, Future
-from .codec010 import StringCodec
-from .queue import Queue
-from .datatypes import Message, serial
-from .ops import Command, MessageTransfer
-from .util import wait, notify
-from .exceptions import *
+from qpid.generator import command_invoker
+from qpid.datatypes import RangedSet, Future
+from qpid.queue import Queue
+from qpid.datatypes import Message, serial
+from qpid.ops import Command
+from qpid.util import wait, notify
+from qpid.exceptions import *
 from logging import getLogger
 
 log = getLogger("qpid.io.cmd")

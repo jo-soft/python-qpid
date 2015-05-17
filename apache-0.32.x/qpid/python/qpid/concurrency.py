@@ -17,7 +17,9 @@
 # under the License.
 #
 
-import compat, inspect, time
+import inspect
+import time
+from qpid import compat
 
 
 def synchronized(meth):
